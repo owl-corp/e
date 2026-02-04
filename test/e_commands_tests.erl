@@ -12,15 +12,36 @@
 
 setup() ->
     % Clean up any previous test data
-    os:cmd("rm -rf " ++ ?TEST_HOME),
+    delete_dir_recursive(?TEST_HOME),
     % Set HOME to test directory
     os:putenv("HOME", ?TEST_HOME),
     ok.
 
 cleanup(_) ->
     % Clean up test data
-    os:cmd("rm -rf " ++ ?TEST_HOME),
+    delete_dir_recursive(?TEST_HOME),
     ok.
+
+%% Helper function to recursively delete a directory
+delete_dir_recursive(Dir) ->
+    case filelib:is_dir(Dir) of
+        true ->
+            case file:list_dir(Dir) of
+                {ok, Files} ->
+                    lists:foreach(fun(File) ->
+                        Path = filename:join(Dir, File),
+                        case filelib:is_dir(Path) of
+                            true -> delete_dir_recursive(Path);
+                            false -> file:delete(Path)
+                        end
+                    end, Files),
+                    file:del_dir(Dir);
+                {error, _} ->
+                    ok
+            end;
+        false ->
+            ok
+    end.
 
 %% Test that install creates a directory
 install_version_test_() ->

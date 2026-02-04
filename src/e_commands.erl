@@ -141,7 +141,10 @@ uninstall_version(Version) ->
 
 %% @doc Get the home directory for e
 get_e_home() ->
-    Home = os:getenv("HOME"),
+    Home = case os:getenv("HOME") of
+        false -> "/tmp";  % Fallback if HOME is not set
+        HomeDir -> HomeDir
+    end,
     filename:join(Home, ?E_HOME).
 
 %% @doc Get the versions directory
